@@ -1,25 +1,158 @@
 ---
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
+title: "RepDataAssignment1-PA"
+author: "Peter Anger"
+date: "4/20/2018"
+output: html_document
 ---
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
 
-## Loading and preprocessing the data
+This markdown file was produced for the first assignment in the
+Reproducible Research course.
 
+#####Load the the activity data  
+- read in the csv file
+```{r load_data, echo = TRUE}
+act<-read.csv("activity.csv",colClasses="character")
+head(act)
+```
+- set appropriate classes for ech column of data  
+```{r set_classes, echo = TRUE}
+act[,1] <- as.numeric(act[,1])
+act[,3] <- as.numeric(act[,3])
+str(act)
+```
+  
+#####Look at daily values:  
+- make a clean copy of the data (removing rows with NA data)
+```{r clean_data, echo = TRUE}
+cleanAct <- na.omit(act)
+```
+- compute the total steps per day
+```{r total_daily_steps, echo = TRUE}
+totalStepsDay <- tapply(cleanAct$steps,cleanAct$date,sum)
+head(totalStepsDay)
+```
+- generate a histogram of total steps per day
+```{r hist_daily_steps, echo = FALSE}
+hist(totalStepsDay,main="",xlab="Total Steps per Day")
+```
+- identify the mean and median total steps per day
+```{r mean_median_steps, echo = TRUE}
+mean(totalStepsDay)
+median(totalStepsDay)
+```
 
+#####Look at the daily activity pattern:  
+- compute the number of steps per interval averaged across days
+```{r mean_steps_per_interval, echo = TRUE}
+meanStepsInterval <-tapply(cleanAct$steps,cleanAct$interval,mean)
+meanStepsInterval<-data.frame(interval=as.numeric(rownames(meanStepsInterval)),steps=meanStepsInterval)
+head(meanStepsInterval)
+```
+- create a time series plot of the steps per interval
+```{r plot_interval_steps, echo = FALSE}
+plot(meanStepsInterval,type="l", xlab = "Interval", ylab = "Steps")
+```
+- identify the interval with the highest average step count
+```{r which_highest_interval_steps, echo = TRUE}
+meanStepsInterval$interval[which.max(meanStepsInterval$steps)]
+```
+- and the corresponding step count
+```{r max_interval_steps, echo = TRUE}
+max(meanStepsInterval$steps)
+```
 
-## What is mean total number of steps taken per day?
+#####Fill in mising values:  
+- identify the number of rows with NA data
+``` {r missing_values, echo = TRUE}
+nrow(act)-nrow(cleanAct)
+```
+- create a copy of the dataset
+``` {r copy_data, echo = TRUE}
+fixedAct<-act
+```
+- replace NA values with the mean number of steps for the given
+interval (averaged across all days)
+``` {r impute_missing_values, echo = TRUE}
+for (row in 1:nrow(fixedAct)) {
+    if (is.na(fixedAct$steps[row])) {
+        fixedAct$steps[row] <- round(meanStepsInterval$steps[(as.character(fixedAct$interval[row]))])
+    }
+}
+```
+#####Reanalyze the "fixed" daily data  
+- compute total steps per day
+```{r total_fixed_daily steps, echo = TRUE}
+totalStepsDay2 <- tapply(fixedAct$steps,fixedAct$date,sum)
+head(totalStepsDay2)
+```
+- generate a histogram of daily steps
+```{r hist_fixed_daily_steps, echo = FALSE}
+hist(totalStepsDay2,main="",xlab="Total Steps per Day")
+```
+- identify the mean daily steps
+```{r mean_fixed_daily_steps, echo = TRUE}
+mean(totalStepsDay2)
+```
+- identify the median daily steps
+```{r median_fixed_daily_steps_daily, echo = TRUE}
+median(totalStepsDay2)
+```
+- compare to cleaned data 
+```{r fixed_vs_cleaned_mean_median, echo = TRUE}
+mean(totalStepsDay2) / mean(totalStepsDay)
+median(totalStepsDay2) / median(totalStepsDay)
+```
 
+#####Reanalyze the "fixed" interval data  
+- compute count of fixed steps per interval averaged across all days
+```{r fixed_interval_steps, echo = TRUE}
+meanStepsInterval2 <-round(tapply(fixedAct$steps,fixedAct$interval,mean))
+meanStepsInterval2<-data.frame(interval=as.numeric(rownames(meanStepsInterval2)),steps=meanStepsInterval2)
+head(meanStepsInterval2)
+```
+- create a time series plot of the steps per interval
+```{r plot_fixed_interval_steps, echo = FALSE}
+plot(meanStepsInterval2,type="l")
+```
+- identify the interval with the highest average step count
+```{r highest_fixed_interval, echo = TRUE}
+meanStepsInterval2$interval[which.max(meanStepsInterval2$steps)]
+max(meanStepsInterval2$steps)
+```
+- compare to cleaned data 
+```{r fixed_vs_clean_interval_steps, echo = TRUE}
+meanStepsInterval2$interval[which.max(meanStepsInterval2$steps)] / meanStepsInterval$interval[which.max(meanStepsInterval$steps)]
+max(meanStepsInterval2$steps) / max(meanStepsInterval$steps)
+```
 
+#####Organize data by weekday Vs weekend  
+- add a factor indicating whether a given date is a weekday or a weekend
+```{r add_daytype_factor, echo = TRUE}
+type<-as.character()
+days <- c("Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday")
+for (i in 1:5) type[days[i]] <- "weekday"
+for (i in 6:7) type[days[i]] <- "weekend"
+fixedAct$dayType <- type[weekdays(as.Date(fixedAct$date))]
+fixedAct$dayType <- as.factor(fixedAct$dayType)
+```
+- create subsets of the data for weekdays vs weekends
+```{r subset_by_daytype, echo = TRUE}
+fixedActWD<-subset(fixedAct,as.character(fixedAct$dayType)=="weekday")
+meanStepsIntervalWD <-round(tapply(fixedActWD$steps,fixedActWD$interval,mean))
+meanStepsIntervalWD<-data.frame(interval=as.numeric(as.character(rownames(meanStepsIntervalWD))),steps=meanStepsIntervalWD)
+fixedActWE<-subset(fixedAct,as.character(fixedAct$dayType)=="weekend")
+meanStepsIntervalWE <-round(tapply(fixedActWE$steps,fixedActWE$interval,mean))
+meanStepsIntervalWE<-data.frame(interval=as.numeric(as.character(rownames(meanStepsIntervalWE))),steps=meanStepsIntervalWE)
+```
 
-## What is the average daily activity pattern?
-
-
-
-## Imputing missing values
-
-
-
-## Are there differences in activity patterns between weekdays and weekends?
+#####Compare weekday to weekend steps  
+-Generate a time series panel plot per the read.me example that compares the mean steps/interval for weekdays and weekends.
+``` {r panelplot, echo = FALSE}
+par(mfrow=c(2,1),cex=.75,mai=c(0,0.25,0.25,0),omi=c(0.75,0.5,0,0.2),col="blue",ann=TRUE)
+plot(meanStepsIntervalWD$interval,meanStepsIntervalWD$steps,type="l",xaxt="n",ylab="",xlab="",main="WEEKDAY")
+plot(meanStepsIntervalWE$interval,meanStepsIntervalWE$steps,type="l",ylab="",xlab="",main="WEEKEND",mtext("Interval",side=1,line=17,col="black",cex=1.25),mtext("Number of Steps",adj=2.2,side=2,line=3,col="black",cex=.75))
+```
