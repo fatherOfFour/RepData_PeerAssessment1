@@ -2,7 +2,7 @@
 title: "RepDataAssignment1-PA"
 author: "Peter Anger"
 date: "4/20/2018"
-output: md_document
+output: html_document
 ---
 
 ```{r setup, include=FALSE}
