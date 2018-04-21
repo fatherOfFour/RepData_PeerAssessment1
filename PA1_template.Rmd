@@ -2,7 +2,7 @@
 title: "RepDataAssignment1-PA"
 author: "Peter Anger"
 date: "4/20/2018"
-output: html_document
+output: md_document
 ---
 
 ```{r setup, include=FALSE}
@@ -152,7 +152,8 @@ meanStepsIntervalWE<-data.frame(interval=as.numeric(as.character(rownames(meanSt
 #####Compare weekday to weekend steps  
 -Generate a time series panel plot per the read.me example that compares the mean steps/interval for weekdays and weekends.
 ``` {r panelplot, echo = FALSE}
-par(mfrow=c(2,1),cex=.75,mai=c(0,0.25,0.25,0),omi=c(0.75,0.5,0,0.2),col="blue",ann=TRUE)
-plot(meanStepsIntervalWD$interval,meanStepsIntervalWD$steps,type="l",xaxt="n",ylab="",xlab="",main="WEEKDAY")
-plot(meanStepsIntervalWE$interval,meanStepsIntervalWE$steps,type="l",ylab="",xlab="",main="WEEKEND",mtext("Interval",side=1,line=17,col="black",cex=1.25),mtext("Number of Steps",adj=2.2,side=2,line=3,col="black",cex=.75))
+par(mfrow=c(2,1),cex=.5,mai=c(0.25,0.5,0.25,0.25),omi=c(0.5,0,0,0),col="blue",ann=TRUE)
+plot(meanStepsIntervalWD$interval,meanStepsIntervalWD$steps,type="l",xaxt="n",yaxt="n",ylab="",xlab="",main="WEEKDAY")
+axis(4)
+plot(meanStepsIntervalWE$interval,meanStepsIntervalWE$steps,type="l",ylab="",xlab="",main="WEEKEND",mtext("Interval",side=1,line=26,col="black",cex=1),mtext("Number of Steps",adj=-1.5,side=2,line=3,col="black",cex=1))
 ```
